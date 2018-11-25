@@ -40,10 +40,11 @@ public class Lexer {
             nextChar();
         }
         if (isLetter(curChar)) {
-            StringBuilder sb = new StringBuilder(curChar);
+            StringBuilder sb = new StringBuilder();
+            sb.append((char)curChar);
             nextChar();
             while (isLetterExtended(curChar)) {
-                sb.append(curChar);
+                sb.append((char)curChar);
                 nextChar();
             }
             name = sb.toString();
@@ -85,5 +86,30 @@ public class Lexer {
 
     public Token getCurToken() {
         return curToken;
+    }
+
+    public int getCurPos(){
+        return curPos;
+    }
+
+    public String showToken(){
+        switch (curToken){
+            case WORD:
+                return "word: " + name;
+            case STAR:
+                return "\'*\'";
+            case END:
+                return "end of input";
+            case SEMI:
+                return "\';\'";
+            case LPAREN:
+                return "\'(\'";
+            case COMMA:
+                return "\',\'";
+            case RPAREN:
+                return "\')\'";
+                default:
+                    return "";
+        }
     }
 }

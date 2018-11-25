@@ -1,3 +1,3 @@
 public enum Token {
-    WORD, LPAREN, RPAREN, STAR, COMMA, SEMI, END
+    WORD, LPAREN, RPAREN, STAR, COMMA, SEMI, END;
 }
