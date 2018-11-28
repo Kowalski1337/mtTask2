@@ -7,13 +7,18 @@
 на указатели, и т. д.). Аргументов может быть несколько.<br>
 Используйте один терминал для всех имен переменных и имен типов.<br>
 Пример: `int fib(int n);`<br>
+Модификация: Добавить поддержку амперсантов <br>
 
 ## Грамматика
-*`FOO`* -> *`NAME STARS NAME (ARGS);`*<br>
-*`ARGS`* -> *`NAME STARS NAME ARGS'`* | *`eps`* <br>
-*`ARGS'`* -> *`,NAME STARS NAME ARGS'`* | *`eps`* <br>
+*`FOO`* -> *`TYPE EXTRA NAME (ARGS);`*<br>
+*`ARGS`* -> *`TYPE EXTRA NAME ARGS'`* | *`eps`* <br>
+*`ARGS'`* -> *`,TYPE EXTRA NAME ARGS'`* | *`eps`* <br>
 *`NAME`* ->*`word`*<br>
-*`STARS`* -> *`*STARS`* | *`eps`* <br>
+*`TYPE`* ->*`word`*<br>
+*`EXTRA`* -> *`POINTER`* | *`AMPER`* | *`eps`*<br>
+*`POINTER`* -> *`*POINTER`* | *`eps`*<br>
+*`AMPER`* -> *`&AMPER`* | *`eps`*<br>
+
 
 *(word -  это \[A-Za-z|'\_'\](\[A-Za-z0-9|'\_'\])\*)* <br>
 
@@ -22,5 +27,8 @@
 FOO | Описание функции | `word` | `$`
 ARGS | Список аргументов функции | `word`, `eps` | `)`
 ARGS' | Продолжения списка аргументов функции | `,`, `eps` | `)`
-NAME | Имя типа или переменной | `word` | `(`, `*`, `,`
-STARS | Указатель | `*`, `eps` | `word`
+NAME | Имя переменной | `word` | `(`, `,`, `)`
+TYPE | Имя типа | `word` | `word`, `*`, `&`
+EXTRA | Указатель или амперсант перед именем | `*`, `&`, `eps` | `word`
+POINTER | Указатель | `*`, `eps` | `word`
+AMPER | Амперсанд | `&`, `eps` | `word`

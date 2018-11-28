@@ -60,7 +60,7 @@ public class Lexer {
                     nextChar();
                     break;
                 case '*':
-                    curToken = Token.STAR;
+                    curToken = Token.POINTER;
                     nextChar();
                     break;
                 case ',':
@@ -69,6 +69,10 @@ public class Lexer {
                     break;
                 case ';':
                     curToken = Token.SEMI;
+                    nextChar();
+                    break;
+                case  '&':
+                    curToken = Token.AMPER;
                     nextChar();
                     break;
                 case -1:
@@ -96,7 +100,7 @@ public class Lexer {
         switch (curToken){
             case WORD:
                 return "word: " + name;
-            case STAR:
+            case POINTER:
                 return "\'*\'";
             case END:
                 return "end of input";

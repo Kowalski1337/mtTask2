@@ -13,13 +13,12 @@ public class Parser {
     }
 
     private ParseTree parseFoo() throws ParseException {
+        ParseTree result;
         switch (lex.getCurToken()) {
             case WORD:
-                ParseTree fooType = new ParseTree("NAME", new ParseTree(lex.getName()));
-                lex.nextToken();
-                ParseTree starsNameFoo = parseStars();
-                ParseTree nameFoo = new ParseTree("NAME", new ParseTree(lex.getName()));
-                lex.nextToken();
+                ParseTree fooType = parseType();
+                ParseTree extra = parseExtra();
+                ParseTree nameFoo = parseName();
                 if (lex.getCurToken() != Token.LPAREN) {
                     throw new ParseException("\"(\" expected at position: " + lex.getCurPos() + ", but " + lex.showToken() + " found\n");
                 }
@@ -36,42 +35,93 @@ public class Parser {
                 if (lex.getCurToken() != Token.END) {
                     throw new ParseException("End of input expected at position: " + lex.getCurPos() + " but " + lex.showToken() + " found\n");
                 }
-                return new ParseTree("FOO", fooType, starsNameFoo, nameFoo, open, args, close, semi);
+                result = new ParseTree("FOO", fooType, extra, nameFoo, open, args, close, semi);
+                break;
             default:
                 throw new ParseException("Wrong first for FOO at position " + lex.getCurPos() + "\n");
         }
+        return result;
     }
 
-    private ParseTree parseStars() throws ParseException {
-        switch (lex.getCurToken()) {
-            case STAR:
-                lex.nextToken();
-                return new ParseTree("STARS", new ParseTree("*"), parseStars());
+    private ParseTree parseExtra() throws ParseException {
+        ParseTree result;
+        switch (lex.getCurToken()){
+            case POINTER:
+                ParseTree pointer = parsePointer();
+                result = new ParseTree("EXTRA", pointer);
+                break;
+            case AMPER:
+                ParseTree amper = parseAmper();
+                result = new ParseTree("EXTRA", amper);
+                break;
             case WORD:
+                result = new ParseTree("EXTRA", new ParseTree("ε"));
+                break;
+                default:
+                    throw new ParseException("Wrong first for EXTRA at position: " + lex.getCurPos() + "\n");
+        }
+        if (lex.getCurToken() != Token.WORD){
+            throw new ParseException("Wrong follow for EXTRA at position: " + lex.getCurPos() + "\n");
+        }
+        return result;
+    }
+
+    private ParseTree parsePointer() throws ParseException {
+        ParseTree result;
+        switch (lex.getCurToken()) {
+            case POINTER:
+                lex.nextToken();
+                ParseTree otherPointers = parsePointer();
+                result = new ParseTree("POINTER", new ParseTree("*"), otherPointers);
+                break;
+            case WORD:
+                result = new ParseTree("POINTER", new ParseTree("ε"));
                 break;
             default:
-                throw new ParseException("Wrong first for STARS at position: " + lex.getCurPos() + "\n");
-
+                throw new ParseException("Wrong first for POINTER at position: " + lex.getCurPos() + "\n");
         }
 
         if (lex.getCurToken() != Token.WORD) {
-            throw new ParseException("Wrong follow for STARS at position: " + lex.getCurPos() + "\n");
+            throw new ParseException("Wrong follow for POINTER at position: " + lex.getCurPos() + "\n");
         }
 
-        return new ParseTree("STARS", new ParseTree("ε"));
+        return result;
+    }
+
+    private ParseTree parseAmper() throws ParseException {
+        ParseTree result;
+        switch (lex.getCurToken()) {
+            case AMPER:
+                lex.nextToken();
+                ParseTree otherAmpers = parseAmper();
+                result = new ParseTree("AMPER", new ParseTree("&"), otherAmpers);
+                break;
+            case WORD:
+                result = new ParseTree("AMPER", new ParseTree("ε"));
+                break;
+            default:
+                throw new ParseException("Wrong first for AMPER at position: " + lex.getCurPos() + "\n");
+        }
+
+        if (lex.getCurToken() != Token.WORD) {
+            throw new ParseException("Wrong follow for AMPER at position: " + lex.getCurPos() + "\n");
+        }
+
+        return result;
     }
 
     private ParseTree parseArgs() throws ParseException {
+        ParseTree result;
         switch (lex.getCurToken()) {
             case WORD:
-                ParseTree argType = new ParseTree("NAME", new ParseTree(lex.getName()));
-                lex.nextToken();
-                ParseTree starsNameArg = parseStars();
-                ParseTree argName = new ParseTree("NAME", new ParseTree(lex.getName()));
-                lex.nextToken();
+                ParseTree argType = parseType();
+                ParseTree extra = parseExtra();
+                ParseTree argName = parseName();
                 ParseTree otherArgs = parseOtherArgs();
-                return new ParseTree("ARGS", argType, starsNameArg, argName, otherArgs);
+                result = new ParseTree("ARGS", argType, extra, argName, otherArgs);
+                break;
             case RPAREN:
+                result = new ParseTree("ARGS", new ParseTree("ε"));
                 break;
             default:
                 throw new ParseException("Wrong first for ARGS at position: " + lex.getCurPos() + "\n");
@@ -79,26 +129,24 @@ public class Parser {
         if (lex.getCurToken() != Token.RPAREN) {
             throw new ParseException("Wrong follow for ARGS at position: " + lex.getCurPos() + "\n");
         }
-        return new ParseTree("ARGS", new ParseTree("ε"));
+        return result;
 
     }
 
     private ParseTree parseOtherArgs() throws ParseException {
+        ParseTree result;
         switch (lex.getCurToken()) {
             case COMMA:
                 ParseTree comma = new ParseTree(lex.showToken());
                 lex.nextToken();
-                if (lex.getCurToken() != Token.WORD) {
-                    throw new ParseException("Name of type expected at position: " + lex.getCurPos() + " but " + lex.showToken() + " found\n");
-                }
-                ParseTree argType = new ParseTree("NAME", new ParseTree(lex.getName()));
-                lex.nextToken();
-                ParseTree starsNameArg = parseStars();
-                ParseTree argName = new ParseTree("NAME", new ParseTree(lex.getName()));
-                lex.nextToken();
-                ParseTree otherAgs = parseOtherArgs();
-                return new ParseTree("ARGS\'", comma, argType, starsNameArg, argName, otherAgs);
+                ParseTree argType = parseType();
+                ParseTree extra = parseExtra();
+                ParseTree argName = parseName();
+                ParseTree otherArgs = parseOtherArgs();
+                result = new ParseTree("ARGS\'", comma, argType, extra, argName, otherArgs);
+                break;
             case RPAREN:
+                result = new ParseTree("ARGS\'", new ParseTree("ε"));
                 break;
             default:
                 throw new ParseException("Wrong first for ARGS\' at position: " + lex.getCurPos() + "\n");
@@ -106,6 +154,38 @@ public class Parser {
         if (lex.getCurToken() != Token.RPAREN) {
             throw new ParseException("Wrong follow for ARGS\' at position: " + lex.getCurPos() + "\n");
         }
-        return new ParseTree("ARGS\'", new ParseTree("ε"));
+        return result;
+    }
+
+    private ParseTree parseType() throws ParseException {
+        ParseTree result;
+        switch (lex.getCurToken()) {
+            case WORD:
+                result = new ParseTree("TYPE", new ParseTree(lex.getName()));
+                lex.nextToken();
+                break;
+                default:
+                    throw new ParseException("Wrong first for TYPE at position: " + lex.getCurPos() + "\n");
+        }
+        if (lex.getCurToken() != Token.WORD && lex.getCurToken() != Token.POINTER && lex.getCurToken() != Token.AMPER){
+            throw new ParseException("Wrong follow for TYPE at position: " + lex.getCurPos() + "\n");
+        }
+        return result;
+    }
+
+    private ParseTree parseName() throws ParseException {
+        ParseTree result;
+        switch (lex.getCurToken()) {
+            case WORD:
+                result = new ParseTree("NAME", new ParseTree(lex.getName()));
+                lex.nextToken();
+                break;
+            default:
+                throw new ParseException("Wrong first for NAME at position: " + lex.getCurPos() + "\n");
+        }
+        if (lex.getCurToken() != Token.LPAREN && lex.getCurToken() != Token.COMMA && lex.getCurToken() != Token.RPAREN){
+            throw new ParseException("Wrong follow for NAME at position: " + lex.getCurPos() + "\n");
+        }
+        return result;
     }
 }

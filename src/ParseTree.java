@@ -35,4 +35,12 @@ public class ParseTree {
             ch.toString(sb, depth + 1);
         });
     }
+
+    public String getName(){
+        return name;
+    }
+
+    public List<ParseTree> getChildren() {
+        return children;
+    }
 }
